@@ -210,11 +210,11 @@ app.get('/api/products', (req, res) => {
     );
   }
 
-  // Apply search with regex
+  // Apply search with regex on multiple columns
   if (search) {
     const regex = new RegExp(search, 'i');
     filteredProducts = filteredProducts.filter((product) =>
-      regex.test(product.name)
+      regex.test(product.name) || regex.test(product.category)
     );
   }
 
@@ -244,27 +244,112 @@ app.listen(port, () => {
 
 
 -----client
+--ser.js
+import React, { useState } from 'react';
+
+function SearchBar({ onSearch }) {
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = () => {
+    onSearch(searchText);
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+      />
+      <button onClick={handleSearch}>Search</button>
+    </div>
+  );
+}
+
+export default SearchBar;
+
+---sort.js
+import React from 'react';
+
+function SortSelect({ options, onChange }) {
+  return (
+    <div>
+      <label>Sort By:</label>
+      <select onChange={onChange}>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+export default SortSelect;
+
+
+--filter.js
+import React, { useState } from 'react';
+
+function FilterOptions({ onFilter }) {
+  const [category, setCategory] = useState('');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+
+  const handleFilter = () => {
+    onFilter({ category, priceMin, priceMax });
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Category"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Min Price"
+        value={priceMin}
+        onChange={(e) => setPriceMin(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Max Price"
+        value={priceMax}
+        onChange={(e) => setPriceMax(e.target.value)}
+      />
+      <button onClick={handleFilter}>Filter</button>
+    </div>
+  );
+}
+
+export default FilterOptions;
+
+---prodList.js (main file)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import SearchBar from './SearchBar';
+import SortSelect from './SortSelect';
+import FilterOptions from './FilterOptions';
 
 function ProductList() {
   const [products, setProducts] = useState([]);
   const [sortBy, setSortBy] = useState('');
-  const [sortOrder, setSortOrder] = useState('');
-  const [category, setCategory] = useState('');
-  const [priceMin, setPriceMin] = useState('');
-  const [priceMax, setPriceMax] = useState('');
-  const [search, setSearch] = useState('');
-  const [ids, setIds] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [filterOptions, setFilterOptions] = useState({});
 
   useEffect(() => {
     fetchProducts();
-  }, [sortBy, sortOrder, category, priceMin, priceMax, search, ids]);
+  }, [sortBy, searchText, filterOptions]);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get(
-        `/api/products?sortBy=${sortBy}&sortOrder=${sortOrder}&category=${category}&priceMin=${priceMin}&priceMax=${priceMax}&search=${search}&ids=${ids}`
+        `/api/products?sortBy=${sortBy}&search=${searchText}&category=${filterOptions.category}&priceMin=${filterOptions.priceMin}&priceMax=${filterOptions.priceMax}`
       );
       setProducts(response.data);
     } catch (error) {
@@ -275,8 +360,17 @@ function ProductList() {
   return (
     <div>
       <h2>Product List</h2>
-      {/* Add filter and search input fields, and select for sorting */}
-      {/* Add a text input for IDs */}
+      <SearchBar onSearch={setSearchText} />
+      <SortSelect
+        options={[
+          { label: 'Name (A-Z)', value: 'name' },
+          { label: 'Name (Z-A)', value: 'name' },
+          { label: 'Price (Low to High)', value: 'price' },
+          { label: 'Price (High to Low)', value: 'price' },
+        ]}
+        onChange={(e) => setSortBy(e.target.value)}
+      />
+      <FilterOptions onFilter={setFilterOptions} />
       <ul>
         {products.map((product) => (
           <li key={product.id}>
@@ -289,7 +383,8 @@ function ProductList() {
 }
 
 export default ProductList;
----client app.js
+
+---app.js (includes prodList.js)
 import React from 'react';
 import './App.css';
 import ProductList from './ProductList';
