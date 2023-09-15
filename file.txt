@@ -1,0 +1,758 @@
+------->client:
+
+------->index.js :
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+	<React.StrictMode>
+		<App />
+	</React.StrictMode>
+);
+
+------->app.js :
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Table from "./components/Table";
+import Sort from "./components/Sort";
+import Genre from "./components/Genre";
+import Pagination from "./components/Pagination";
+import Search from "./components/Search";
+import "./App.css";
+
+const base_url = process.env.REACT_APP_API_URL;
+
+function App() {
+	const [obj, setObj] = useState({});
+	const [sort, setSort] = useState({ sort: "rating", order: "desc" });
+	const [filterGenre, setFilterGenre] = useState([]);
+	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState("");
+
+	useEffect(() => {
+		const getAllMovies = async () => {
+			try {
+				const url = `${base_url}?page=${page}&sort=${sort.sort},${
+					sort.order
+				}&genre=${filterGenre.toString()}&search=${search}`;
+				const { data } = await axios.get(url);
+				setObj(data);
+			} catch (err) {
+				console.log(err);
+			}
+		};
+
+		getAllMovies();
+	}, [sort, filterGenre, page, search]);
+
+	return (
+		<div className="wrapper">
+			<div className="container">
+				<div className="head">
+					<img src="./images/logo.png" alt="logo" className="logo" />
+					<Search setSearch={(search) => setSearch(search)} />
+				</div>
+				<div className="body">
+					<div className="table_container">
+						<Table movies={obj.movies ? obj.movies : []} />
+						<Pagination
+							page={page}
+							limit={obj.limit ? obj.limit : 0}
+							total={obj.total ? obj.total : 0}
+							setPage={(page) => setPage(page)}
+						/>
+					</div>
+					<div className="filter_container">
+						<Sort sort={sort} setSort={(sort) => setSort(sort)} />
+						<Genre
+							filterGenre={filterGenre}
+							genres={obj.genres ? obj.genres : []}
+							setFilterGenre={(genre) => setFilterGenre(genre)}
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export default App;
+
+------->genre.js:
+import styles from "./styles.module.css";
+
+const Genre = ({ genres, filterGenre, setFilterGenre }) => {
+	const onChange = ({ currentTarget: input }) => {
+		if (input.checked) {
+			const state = [...filterGenre, input.value];
+			setFilterGenre(state);
+		} else {
+			const state = filterGenre.filter((val) => val !== input.value);
+			setFilterGenre(state);
+		}
+	};
+
+	return (
+		<div className={styles.container}>
+			<h1 className={styles.heading}>Filter By Genre</h1>
+			<div className={styles.genre_container}>
+				{genres.map((genre) => (
+					<div className={styles.genre} key={genre}>
+						<input
+							className={styles.genre_input}
+							type="checkbox"
+							value={genre}
+							onChange={onChange}
+						/>
+						<p className={styles.genre_label}>{genre}</p>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default Genre;
+
+
+------->search.js:
+import styles from "./styles.module.css";
+
+const Search = ({ setSearch }) => {
+	return (
+		<input
+			type="text"
+			className={styles.search}
+			placeholder="Search"
+			onChange={({ currentTarget: input }) => setSearch(input.value)}
+		/>
+	);
+};
+
+export default Search;
+
+
+------->sort.js:
+import styles from "./styles.module.css";
+
+const Sort = ({ sort, setSort }) => {
+	const onSelectChange = ({ currentTarget: input }) => {
+		setSort({ sort: input.value, order: sort.order });
+	};
+
+	const onArrowChange = () => {
+		if (sort.order === "asc") {
+			setSort({ sort: sort.sort, order: "desc" });
+		} else {
+			setSort({ sort: sort.sort, order: "asc" });
+		}
+	};
+
+	return (
+		<div className={styles.container}>
+			<p className={styles.sort_by}>Sort By :</p>
+			<select
+				onChange={onSelectChange}
+				className={styles.select}
+				defaultValue={sort.sort}
+			>
+				<option value="year">Year</option>
+				<option value="rating">Rating</option>
+			</select>
+			<button className={styles.arrow_btn} onClick={onArrowChange}>
+				<p className={styles.up_arrow}>&uarr;</p>
+				<p className={styles.down_arrow}>&darr;</p>
+			</button>
+		</div>
+	);
+};
+
+export default Sort;
+
+
+------->table.js
+import styles from "./styles.module.css";
+
+const Table = ({ movies }) => {
+	return (
+		<div className={styles.container}>
+			<div className={styles.heading}>
+				<p className={styles.title_tab}>Title</p>
+				<p className={styles.genre_tab}>Genre</p>
+				<p className={styles.rating_tab}>Rating</p>
+			</div>
+			{movies.map((movie) => (
+				<div className={styles.movie} key={movie._id}>
+					<div className={styles.title_container}>
+						<img src={movie.img} alt="movie" className={styles.movie_img} />
+						<p className={styles.movie_title}>
+							{movie.name} ({movie.year})
+						</p>
+					</div>
+					<div className={styles.genre_container}>
+						{movie.genre.map((genre, index) => (
+							<p key={genre} className={styles.movie_genre}>
+								{genre}
+								{index !== movie.genre.length - 1 && "/"}
+							</p>
+						))}
+					</div>
+					<div className={styles.rating_container}>
+						<img
+							src="./images/star.png"
+							alt="star"
+							className={styles.star_img}
+						/>
+						<p className={styles.movie_rating}>{movie.rating}</p>
+					</div>
+				</div>
+			))}
+		</div>
+	);
+};
+
+export default Table;
+
+------->pagination.js:
+import styles from "./styles.module.css";
+
+const Pagination = ({ page, total, limit, setPage }) => {
+	const totalPages = Math.ceil(total / limit);
+
+	const onClick = (newPage) => {
+		setPage(newPage + 1);
+	};
+
+	return (
+		<div className={styles.container}>
+			{totalPages > 0 &&
+				[...Array(totalPages)].map((val, index) => (
+					<button
+						onClick={() => onClick(index)}
+						className={
+							page === index + 1
+								? `${styles.page_btn} ${styles.active}`
+								: styles.page_btn
+						}
+						key={index}
+					>
+						{index + 1}
+					</button>
+				))}
+		</div>
+	);
+};
+
+export default Pagination;
+
+------->server:
+const router = require("express").Router();
+const Movie = require("../models/Movie");
+const movies = require("../config/movies.json");
+
+router.get("/movies", async (req, res) => {
+	try {
+		const page = parseInt(req.query.page) - 1 || 0;
+		const limit = parseInt(req.query.limit) || 5;
+		const search = req.query.search || "";
+		let sort = req.query.sort || "rating";
+		let genre = req.query.genre || "All";
+
+		const genreOptions = [
+			"Action",
+			"Romance",
+			"Fantasy",
+			"Drama",
+			"Crime",
+			"Adventure",
+			"Thriller",
+			"Sci-fi",
+			"Music",
+			"Family",
+		];
+
+		genre === "All"
+			? (genre = [...genreOptions])
+			: (genre = req.query.genre.split(","));
+		req.query.sort ? (sort = req.query.sort.split(",")) : (sort = [sort]);
+
+		let sortBy = {};
+		if (sort[1]) {
+			sortBy[sort[0]] = sort[1];
+		} else {
+			sortBy[sort[0]] = "asc";
+		}
+
+		const movies = await Movie.find({ name: { $regex: search, $options: "i" } })
+			.where("genre")
+			.in([...genre])
+			.sort(sortBy)
+			.skip(page * limit)
+			.limit(limit);
+
+		const total = await Movie.countDocuments({
+			genre: { $in: [...genre] },
+			name: { $regex: search, $options: "i" },
+		});
+
+		const response = {
+			error: false,
+			total,
+			page: page + 1,
+			limit,
+			genres: genreOptions,
+			movies,
+		};
+
+		res.status(200).json(response);
+	} catch (err) {
+		console.log(err);
+		res.status(500).json({ error: true, message: "Internal Server Error" });
+	}
+});
+
+// const insertMovies = async () => {
+//     try {
+//         const docs = await Movie.insertMany(movies);
+//         return Promise.resolve(docs);
+//     } catch (err) {
+//         return Promise.reject(err)
+//     }
+// };
+
+// insertMovies()
+//     .then((docs) => console.log(docs))
+//     .catch((err) => console.log(err))
+
+module.exports = router;
+
+
+------->chatGPT:
+------->Node Express Operations
+const express = require('express');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const app = express();
+const port = 3000;
+
+// Sample data (replace with your actual data source)
+const items = [
+  { id: 1, name: 'Item 1', category: 'Category A' },
+  { id: 2, name: 'Item 2', category: 'Category B' },
+  // Add more items here
+];
+
+const users = []; // Store user data
+
+// Middleware
+app.use(bodyParser.json());
+
+// Authentication middleware
+function authenticateToken(req, res, next) {
+  const token = req.header('Authorization');
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, 'your_secret_key', (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+// Authentication endpoint
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username);
+  if (user == null) return res.sendStatus(404);
+
+  bcrypt.compare(password, user.password, (err, result) => {
+    if (err || !result) return res.sendStatus(403);
+
+    const accessToken = jwt.sign({ username: user.username }, 'your_secret_key');
+    res.json({ accessToken });
+  });
+});
+
+// Advanced operations endpoint
+app.get('/advanced-operations', authenticateToken, (req, res) => {
+  let filteredItems = [...items];
+
+  // Filtering
+  if (req.query.category) {
+    filteredItems = filteredItems.filter(item => item.category === req.query.category);
+  }
+
+  // Searching
+  if (req.query.search) {
+    const searchQuery = req.query.search.toLowerCase();
+    filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(searchQuery));
+  }
+
+  // Sorting
+  if (req.query.sortBy) {
+    const sortBy = req.query.sortBy.toLowerCase();
+    switch (sortBy) {
+      case 'name':
+        filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'category':
+        filteredItems.sort((a, b) => a.category.localeCompare(b.category));
+        break;
+      // Add more sorting options here
+      default:
+        // Handle invalid sortBy value
+        return res.status(400).json({ error: 'Invalid sortBy value' });
+    }
+  }
+
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+  res.json({ data: paginatedItems });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+
+-------> search sort fileter in MERN:
+-->nodejs
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+const port = 5000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Sample data (replace with your data source)
+const items = [
+  { id: 1, name: 'Item 1', category: 'Category A' },
+  { id: 2, name: 'Item 2', category: 'Category B' },
+  // Add more items here
+];
+
+// Search, sort, and filter route
+app.get('/items', (req, res) => {
+  // Retrieve query parameters for search, sort, and filter
+  const { search, sortBy, filterBy } = req.query;
+
+  // Apply search
+  let filteredItems = items;
+  if (search) {
+    const searchQuery = search.toLowerCase();
+    filteredItems = items.filter(item =>
+      item.name.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Apply sorting
+  if (sortBy) {
+    const sortOrder = sortBy === 'name' ? 1 : -1;
+    filteredItems.sort((a, b) =>
+      a[sortBy].localeCompare(b[sortBy]) * sortOrder
+    );
+  }
+
+  // Apply filtering
+  if (filterBy) {
+    filteredItems = filteredItems.filter(
+      item => item.category === filterBy
+    );
+  }
+
+  res.json(filteredItems);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+--> reactjs
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [items, setItems] = useState([]);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [filterBy, setFilterBy] = useState('');
+
+  useEffect(() => {
+    // Define a function to fetch data from the API
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `/items?search=${search}&sortBy=${sortBy}&filterBy=${filterBy}`
+        );
+        setItems(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // Call the fetchData function
+    fetchData();
+  }, [search, sortBy, filterBy]);
+
+  return (
+    <div className="App">
+      <h1>Search, Sort, and Filter Example</h1>
+
+      {/* Search input */}
+      <input
+        type="text"
+        placeholder="Search"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
+
+      {/* Sort dropdown */}
+      <select
+        value={sortBy}
+        onChange={e => setSortBy(e.target.value)}
+      >
+        <option value="">Sort By</option>
+        <option value="name">Name (A-Z)</option>
+        <option value="category">Category (A-Z)</option>
+      </select>
+
+      {/* Filter dropdown */}
+      <select
+        value={filterBy}
+        onChange={e => setFilterBy(e.target.value)}
+      >
+        <option value="">Filter By Category</option>
+        <option value="Category A">Category A</option>
+        <option value="Category B">Category B</option>
+      </select>
+
+      {/* Display items */}
+      <ul>
+        {items.map(item => (
+          <li key={item.id}>
+            {item.name} - {item.category}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
+
+
+------> CRUD in MERN
+--> server
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+const port = 5000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Sample data (replace with your data source)
+const items = [
+  { id: 1, name: 'Item 1', category: 'Category A' },
+  { id: 2, name: 'Item 2', category: 'Category B' },
+  // Add more items here
+];
+
+// CRUD operations
+
+// Create (POST)
+app.post('/items', (req, res) => {
+  const newItem = req.body;
+  newItem.id = items.length + 1; // Generate a new ID
+  items.push(newItem);
+  res.json(newItem);
+});
+
+// Read (GET)
+app.get('/items', (req, res) => {
+  res.json(items);
+});
+
+app.get('/items/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const item = items.find(item => item.id === id);
+  if (!item) {
+    return res.status(404).json({ error: 'Item not found' });
+  }
+  res.json(item);
+});
+
+// Update (PUT)
+app.put('/items/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const updatedItem = req.body;
+  const index = items.findIndex(item => item.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Item not found' });
+  }
+  items[index] = { ...items[index], ...updatedItem };
+  res.json(items[index]);
+});
+
+// Delete (DELETE)
+app.delete('/items/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = items.findIndex(item => item.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Item not found' });
+  }
+  const deletedItem = items.splice(index, 1)[0];
+  res.json(deletedItem);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+--> client
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState({ name: '', category: '' });
+
+  useEffect(() => {
+    // Fetch all items on component load
+    axios.get('/items')
+      .then(response => setItems(response.data))
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
+
+  const createItem = () => {
+    axios.post('/items', newItem)
+      .then(response => {
+        setItems([...items, response.data]);
+        setNewItem({ name: '', category: '' });
+      })
+      .catch(error => console.error('Error creating item:', error));
+  };
+
+  return (
+    <div className="App">
+      <h1>CRUD Search, Sort, Filter Example</h1>
+
+      {/* Create new item */}
+      <div>
+        <input
+          type="text"
+          placeholder="Name"
+          value={newItem.name}
+          onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Category"
+          value={newItem.category}
+          onChange={e => setNewItem({ ...newItem, category: e.target.value })}
+        />
+        <button onClick={createItem}>Create</button>
+      </div>
+
+      {/* Display items */}
+      <ul>
+        {items.map(item => (
+          <li key={item.id}>
+            {item.name} - {item.category}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
+
+
+bard:
+------->Node Express operations
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+// Create an Express app
+const app = express();
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Define a model for our users
+const User = mongoose.model('User', {
+  name: String,
+  email: String,
+  password: String,
+});
+
+// Use the body-parser middleware to parse JSON requests
+app.use(bodyParser.json());
+
+// Define a route for creating a new user
+app.post('/users', async (req, res) => {
+  const user = new User(req.body);
+  await user.save();
+  res.status(201).send(user);
+});
+
+// Define a route for getting all users
+app.get('/users', async (req, res) => {
+  const users = await User.find();
+  res.send(users);
+});
+
+// Define a route for getting a single user by ID
+app.get('/users/:id', async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404).send('User not found');
+    return;
+  }
+  res.send(user);
+});
+
+// Define a route for updating a user
+app.put('/users/:id', async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404).send('User not found');
+    return;
+  }
+
+  user.name = req.body.name;
+  user.email = req.body.email;
+  await user.save();
+  res.send(user);
+});
+
+// Define a route for deleting a user
+app.delete('/users/:id', async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) {
+    res.status(404).send('User not found');
+    return;
+  }
+  res.status(204).send();
+});
+
+// Start the Express server
+app.listen(3000, () => {
+  console.log('Server listening on port 3000');
+});
+
+
