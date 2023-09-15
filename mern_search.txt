@@ -1,0 +1,65 @@
+#####MERN Search operation:
+###Backend
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const port = 5000;
+
+app.use(cors());
+
+// Sample data (replace with your data source)
+const items = [
+  { id: 1, name: 'Item 1', category: 'Category A' },
+  { id: 2, name: 'Item 2', category: 'Category B' },
+  // Add more items here
+];
+
+// Search operation
+app.get('/search', (req, res) => {
+  const query = req.query.q.toLowerCase();
+  const searchResults = items.filter(
+    item => item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)
+  );
+  res.json(searchResults);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+###FrontEnd
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleSearch = () => {
+    axios.get(`/search?q=${searchQuery}`)
+      .then(response => setSearchResults(response.data))
+      .catch(error => console.error('Error searching:', error));
+  };
+
+  return (
+    <div className="App">
+      <h1>Search Operation Example</h1>
+      <input
+        type="text"
+        placeholder="Search"
+        value={searchQuery}
+        onChange={e => setSearchQuery(e.target.value)}
+      />
+      <button onClick={handleSearch}>Search</button>
+      <ul>
+        {searchResults.map(item => (
+          <li key={item.id}>
+            {item.name} - {item.category}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;

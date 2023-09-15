@@ -1,0 +1,73 @@
+#####MERN Filter operation:
+###Backend
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const port = 5000;
+
+app.use(cors());
+
+// Sample data (replace with your data source)
+const items = [
+  { id: 1, name: 'Item 1', category: 'Category A' },
+  { id: 2, name: 'Item 2', category: 'Category B' },
+  // Add more items here
+];
+
+// Filter operation
+app.get('/filter', (req, res) => {
+  const filterBy = req.query.filterBy;
+  if (!filterBy) {
+    res.status(400).json({ error: 'filterBy parameter is required' });
+    return;
+  }
+
+  const filteredItems = items.filter(item => item.category === filterBy);
+
+  res.json(filteredItems);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+###Frontend
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [filterResults, setFilterResults] = useState([]);
+  const [filterBy, setFilterBy] = useState('');
+
+  const handleFilter = () => {
+    if (!filterBy) {
+      alert('Please select a filtering option.');
+      return;
+    }
+
+    axios.get(`/filter?filterBy=${filterBy}`)
+      .then(response => setFilterResults(response.data))
+      .catch(error => console.error('Error filtering:', error));
+  };
+
+  return (
+    <div className="App">
+      <h1>Filter Operation Example</h1>
+      <select onChange={e => setFilterBy(e.target.value)}>
+        <option value="">Select Filtering</option>
+        <option value="Category A">Category A</option>
+        <option value="Category B">Category B</option>
+      </select>
+      <button onClick={handleFilter}>Filter</button>
+      <ul>
+        {filterResults.map(item => (
+          <li key={item.id}>
+            {item.name} - {item.category}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
