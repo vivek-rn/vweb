@@ -399,3 +399,113 @@ function App() {
 }
 
 export default App;
+
+-----app.js alternative with all ser, sort and filter in one file.
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [products, setProducts] = useState([]);
+  const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [category, setCategory] = useState('');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [search, setSearch] = useState('');
+  const [ids, setIds] = useState('');
+
+  useEffect(() => {
+    fetchProducts();
+  }, [sortBy, sortOrder, category, priceMin, priceMax, search, ids]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(
+        `/api/products?sortBy=${sortBy}&sortOrder=${sortOrder}&category=${category}&priceMin=${priceMin}&priceMax=${priceMax}&search=${search}&ids=${ids}`
+      );
+      setProducts(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div className="App">
+      <h1>React Frontend</h1>
+      <h2>Product List</h2>
+
+      {/* Search */}
+      <div>
+        <input
+          type="text"
+          placeholder="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button onClick={fetchProducts}>Search</button>
+      </div>
+
+      {/* Sort */}
+      <div>
+        <label>Sort By:</label>
+        <select onChange={(e) => setSortBy(e.target.value)}>
+          <option value="name">Name (A-Z)</option>
+          <option value="name">Name (Z-A)</option>
+          <option value="price">Price (Low to High)</option>
+          <option value="price">Price (High to Low)</option>
+        </select>
+
+        <select onChange={(e) => setSortOrder(e.target.value)}>
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+
+        <button onClick={fetchProducts}>Sort</button>
+      </div>
+
+      {/* Filter */}
+      <div>
+        <input
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Min Price"
+          value={priceMin}
+          onChange={(e) => setPriceMin(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Max Price"
+          value={priceMax}
+          onChange={(e) => setPriceMax(e.target.value)}
+        />
+        <button onClick={fetchProducts}>Filter</button>
+      </div>
+
+      {/* ID Filter */}
+      <div>
+        <input
+          type="text"
+          placeholder="IDs (comma-separated)"
+          value={ids}
+          onChange={(e) => setIds(e.target.value)}
+        />
+        <button onClick={fetchProducts}>Filter by IDs</button>
+      </div>
+
+      <ul>
+        {products.map((product) => (
+          <li key={product.id}>
+            {product.name} - {product.category} - ${product.price}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
