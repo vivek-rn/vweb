@@ -7,8 +7,7 @@
     <script src="/jquery-3.7.1.min.js"></script>
 </head>
 <body onload="f()">
-<!--     <a id="search_link" style="" href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0">Click Me</a> -->
-<a id="search_link">Click Me</a> 
+<a id="search_link" style="" href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0">Click Me</a>
     <script>
 
 // $(document).ready(function() {
@@ -18,10 +17,9 @@
 // //  $('#search_link')[0].dispatchEvent(new Event('click'));
 // });
 
-f(){
-    // var url = $("#search_link").attr("href");
-    document.location.replace('whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0');
-}
+window.addEventListener("load", (event) => {
+  document.getElementById("search_link").click();
+});
 
 </script>  
 </body>
