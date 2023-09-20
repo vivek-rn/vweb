@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="/jquery-3.7.1.min.js"></script>
 </head>
-<body onload="f()">
+<body>
+    <a id="search_link" style="visibility: hidden;" href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa&type=phone_number&app_absent=0">Click Me</a>
 <script>
-    function f(){
-        window.open('whatsapp://send/?phone=916282932091&text="Jiiiii Gift nalla irukaaaaa"&type=phone_number&app_absent=0');
-    }
+
+$(document).ready(function() {
+    $('#search_link')[0].click();
+    $('#search_link')[0].style.visibility="hidden";
+});
 </script>  
 </body>
 </html>
