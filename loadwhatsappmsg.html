@@ -7,13 +7,21 @@
     <script src="/jquery-3.7.1.min.js"></script>
 </head>
 <body>
-    <a id="search_link" style="visibility: hidden;" href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa&type=phone_number&app_absent=0">Click Me</a>
+    <a id="search_link" style="visibility: hidden;" href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0">Click Me</a>
 <script>
 
-$(document).ready(function() {
-    $('#search_link')[0].click();
-    $('#search_link')[0].style.visibility="hidden";
+// $(document).ready(function() {
+// // $('#search_link')[0].click();
+//  $('#search_link')[0].style.visibility="hidden";
+//  $('#search_link')[0].trigger('click');
+// //  $('#search_link')[0].dispatchEvent(new Event('click'));
+// });
+
+$(document).ready(function(){
+    var url = $("#search_link").attr("href");
+    document.location.replace(url);
 });
+
 </script>  
 </body>
 </html>
