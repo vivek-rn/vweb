@@ -1,31 +1,11 @@
 <html>
 <body>
-    <a id="search_link"
-    style="visibility: visible;"
-        href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0">ClickMe</a>
+    <a id="search_link" style="visibility: visible;"
+        href="whatsapp://send/?phone=916282932091&text=Jiiiii Gift nalla irukaaaaa???&type=phone_number&app_absent=0">CLICK HERE.......</a>
     <script>
-        function getPoint() {
-            var target = document.getElementById("search_link");
-            var top = target.offsetTop;
-            var left = target.offsetLeft;
-            // console.log(top,",",left);
-            function mclick(x, y) {
-                var ev = new TouchEvent('click', {
-                    'view': window,
-                    'bubbles': true,
-                    'cancelable': true,
-                    'offsetLeft': x,
-                    'offsetTop': y
-                });
-
-                var el = document.elementFromPoint(x, y);
-                // console.log(el); //print element to console
-                el.dispatchEvent(ev);
-            }
-
-            mclick(left, top);
-        }
-        getPoint();
+            window.addEventListener("load", (event) => {
+                document.getElementById("search_link").click();
+            });
     </script>
 </body>
 </html>
