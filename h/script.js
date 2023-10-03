@@ -16,5 +16,5 @@ window.addEventListener("load", (event) => {
 
 $(".full-landing-image").ripples({
     resolution: 256,
-    perturbance: 0.05,
+    perturbance: 0.03,
   });
