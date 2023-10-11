@@ -94,7 +94,7 @@ a{
 #visible {
   position: absolute;
   /* visibility: hidden; */
-  top: 38%;
+  top: 27%;
   left: 43%;
   width: 15%;
   height: 30%;
@@ -126,7 +126,9 @@ a{
 
 
 /*  */
-
+#seekbar{
+  margin-top: 65%;
+}
 .container {
   /* position: absolute; */
   /* margin-top: 10%; */
