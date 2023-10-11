@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024">
+  <title>Happy Birthday - Jiiiii</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css'>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery.ripples/0.5.3/jquery.ripples.min.js'></script>
+</head>
+<body>
+  <a href="./jiquiz.html">CLICK HERE AFTER PLAYING THE BELOW AUDIO....</a>
+  <br>
+  <div id="confetti">
+    <div class="full-landing-image">
+      <div class="container">
+        <div class="glow">
+          <img src="./click.gif" id="visible"/>
+          <div class="text-container">
+            <span class="text">Play this</span>
+            <br>
+            <span class="text">Audio Jiiiiiiiiiiiiiiiiiiiiiiiiii</span>
+            <br>
+            <div class="playback_controls">
+            <!-- <button onclick="skip('back')"><i class="fa fa-fast-backward"></i></button> -->
+            <button id="btn_play_pause" onclick="playpause()"><i style="margin-right: 5px;" class="fa fa-play">&nbsp;play</i><b style="font-size: 20px;color: blueviolet;">/</b><i style="margin-left: 5px;" class="fa fa-pause">&nbsp;pause</i></button>
+            <button onclick="stop()" style="width: 70px;" ><i class="fa fa-stop">&nbsp;stop</i></button>
+            <!-- <button onclick="skip('fwd')"><i class="fa fa-fast-forward"></i></button> -->
+            </div>
+            <br>
+            <div id="seekbar">
+            <input type="range" oninput="setPos(this.value)" id="seek" value="0" max="">
+            </div>
+            <br>
+            <div class="volume_controls">
+            <button id="mute" onclick="mute()"><i class="fa fa-volume-up"></i></button>
+            <input type="range" id="volume" oninput="setVolume(this.value)" min="0" max="1" step="0.01" value="1">
+            </div>
+          </div>
+        </div>
+      </div>
+    <img src="./swipe.png" id="float"/>
+    </div>
+    </div>
+    <script>
+      var song = new Audio;
+var muted = false;
+var vol = 1;
+song.type = 'audio/mpeg';
+song.src = 'happy.mp3';//Audio file source url
+
+// function skip(time) {
+//    if (time == 'back') {
+//      song.currentTime = (song.currentTime - 5);
+//    } else if (time == 'fwd') {
+//      song.currentTime = (song.currentTime + 5);
+//    }
+// }
+function playpause() {
+  if (!song.paused) {
+    song.pause();
+  } else {
+    song.play();
+  }
+}
+function stop() {
+  song.pause();
+  song.currentTime = 0;
+  document.getElementById('seek').value = 0;
+}
+function setPos(pos) {
+  song.currentTime = pos;
+}
+function mute() {
+  if (muted) {
+    song.volume = vol;
+    muted = false;
+    document.getElementById('mute').innerHTML = '<i class="fa fa-volume-up"></i>';
+  } else {
+    song.volume = 0;
+    muted = true;
+    document.getElementById('mute').innerHTML = '<i class="fa fa-volume-off"></i>';
+  }
+}
+function setVolume(volume) {
+  song.volume = volume;
+  vol = volume;
+}
+song.addEventListener('timeupdate',function() {
+  curtime = parseInt(song.currentTime,10);
+  document.getElementById('seek').max = song.duration;
+  document.getElementById('seek').value = curtime;
+})
+    </script>
+  <script src='./confetti.min.js'></script>
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
