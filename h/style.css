@@ -365,3 +365,24 @@ input::-webkit-slider-thumb {
     background-position: 0 0;
   }
 }
+
+@media screen and (max-width: 400px) {
+  .glow {
+    width: 650px;
+    height: 650px;
+  }
+  .glow::after {
+  max-width: -webkit-calc(650px + 4px);
+  max-width: -moz-calc(650px + 4px);
+  max-width: calc(650px + 4px);
+  max-height: -webkit-calc(650px + 4px);
+  max-height: -moz-calc(650px + 4px);
+  max-height: calc(650px + 4px);
+  width: -webkit-calc(650px + 4px);
+  width: -moz-calc(650px + 4px);
+  width: calc(650px + 4px);
+  height: -webkit-calc(650px + 4px);
+  height: -moz-calc(650px + 4px);
+  height: calc(650px + 4px);
+  }
+}
