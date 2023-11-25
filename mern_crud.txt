@@ -20,6 +20,7 @@ const ItemSchema = new mongoose.Schema({
 
 const Item = mongoose.model('Item', ItemSchema);
 
+// Get all items
 app.get('/api/items', async (req, res) => {
   try {
     const items = await Item.find();
@@ -29,6 +30,22 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
+// Get item by ID
+app.get('/api/items/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const item = await Item.findById(id);
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create new item
 app.post('/api/items', async (req, res) => {
   const { name } = req.body;
   const newItem = new Item({ name });
@@ -41,32 +58,41 @@ app.post('/api/items', async (req, res) => {
   }
 });
 
+// Update item by ID
 app.put('/api/items/:id', async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
   try {
     const updatedItem = await Item.findByIdAndUpdate(id, { name }, { new: true });
+    if (!updatedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
     res.json(updatedItem);
   } catch (err) {
-    res.status(404).json({ message: 'Item not found' });
+    res.status(500).json({ message: err.message });
   }
 });
 
+// Delete item by ID
 app.delete('/api/items/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    await Item.findByIdAndRemove(id);
+    const deletedItem = await Item.findByIdAndRemove(id);
+    if (!deletedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
     res.sendStatus(204);
   } catch (err) {
-    res.status(404).json({ message: 'Item not found' });
+    res.status(500).json({ message: err.message });
   }
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
 
 
 
@@ -78,6 +104,8 @@ import axios from 'axios';
 const ItemManager = () => {
   const [items, setItems] = useState([]);
   const [itemName, setItemName] = useState('');
+  const [itemId, setItemId] = useState('');
+  const [itemToUpdate, setItemToUpdate] = useState('');
 
   useEffect(() => {
     fetchItems();
@@ -111,6 +139,26 @@ const ItemManager = () => {
     }
   };
 
+  const handleGetItemById = async () => {
+    try {
+      const response = await axios.get(`/api/items/${itemId}`);
+      setItemToUpdate(response.data.name);
+    } catch (error) {
+      console.error('Error getting item by ID:', error);
+    }
+  };
+
+  const handleUpdateItem = async () => {
+    try {
+      await axios.put(`/api/items/${itemId}`, { name: itemToUpdate });
+      fetchItems();
+      setItemId('');
+      setItemToUpdate('');
+    } catch (error) {
+      console.error('Error updating item:', error);
+    }
+  };
+
   return (
     <div>
       <h2>Items</h2>
@@ -129,8 +177,25 @@ const ItemManager = () => {
         onChange={(e) => setItemName(e.target.value)}
       />
       <button onClick={handleAddItem}>Add Item</button>
+      
+      <input
+        type="text"
+        placeholder="Enter item ID to update"
+        value={itemId}
+        onChange={(e) => setItemId(e.target.value)}
+      />
+      <button onClick={handleGetItemById}>Get Item by ID</button>
+
+      <input
+        type="text"
+        placeholder="Enter updated item name"
+        value={itemToUpdate}
+        onChange={(e) => setItemToUpdate(e.target.value)}
+      />
+      <button onClick={handleUpdateItem}>Update Item</button>
     </div>
   );
 };
 
 export default ItemManager;
+
