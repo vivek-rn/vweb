@@ -1,0 +1,136 @@
+------------Backend----------
+// backend/index.js
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+const app = express();
+const PORT = 3001;
+
+app.use(bodyParser.json());
+
+mongoose.connect('mongodb://localhost:27017/your_database', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const ItemSchema = new mongoose.Schema({
+  name: String,
+});
+
+const Item = mongoose.model('Item', ItemSchema);
+
+app.get('/api/items', async (req, res) => {
+  try {
+    const items = await Item.find();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/items', async (req, res) => {
+  const { name } = req.body;
+  const newItem = new Item({ name });
+
+  try {
+    const savedItem = await newItem.save();
+    res.status(201).json(savedItem);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.put('/api/items/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  try {
+    const updatedItem = await Item.findByIdAndUpdate(id, { name }, { new: true });
+    res.json(updatedItem);
+  } catch (err) {
+    res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+app.delete('/api/items/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await Item.findByIdAndRemove(id);
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
+
+------------------frontend-------------------
+// src/components/ItemManager.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ItemManager = () => {
+  const [items, setItems] = useState([]);
+  const [itemName, setItemName] = useState('');
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      const response = await axios.get('/api/items');
+      setItems(response.data);
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    }
+  };
+
+  const handleAddItem = async () => {
+    try {
+      await axios.post('/api/items', { name: itemName });
+      fetchItems();
+      setItemName('');
+    } catch (error) {
+      console.error('Error adding item:', error);
+    }
+  };
+
+  const handleDeleteItem = async (id) => {
+    try {
+      await axios.delete(`/api/items/${id}`);
+      fetchItems();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Items</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item._id}>
+            {item.name}
+            <button onClick={() => handleDeleteItem(item._id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      <input
+        type="text"
+        placeholder="Enter item name"
+        value={itemName}
+        onChange={(e) => setItemName(e.target.value)}
+      />
+      <button onClick={handleAddItem}>Add Item</button>
+    </div>
+  );
+};
+
+export default ItemManager;
